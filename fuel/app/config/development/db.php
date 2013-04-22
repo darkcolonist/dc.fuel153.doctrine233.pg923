@@ -6,11 +6,13 @@
 return array(
 	'default' => array(
 		'connection'  => array(
-      'hostname'   => 'localhost',
-      'database'   => 'test',
-			'username'   => 'root',
-			'password'   => 'qwerty321',
-			'dsn'        => 'mysql:host=localhost;dbname=test',
+      'hostname'    => 'localhost',
+      'database'    => 'dc_deploy',
+			'username'    => 'dev',
+			'password'    => 'dev',
+			'port'        => '5432',
+			'dsn'         => 'mysql:host=localhost;dbname=dc_deploy',
+			'driver'      => 'pdo_pgsql',
 		),
 	),
 );

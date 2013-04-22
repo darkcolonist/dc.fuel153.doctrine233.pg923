@@ -5,10 +5,10 @@ class Controller_Test_Doctore extends Controller_Test
     $_t = "OH MY LORD <blink>IT WORKS!!!</blink>";
 
     $results = Doctrine::$em->getConnection()
-            ->fetchAll("SELECT * FROM tbl_chat;");
+            ->fetchAll("SELECT * FROM users;");
 
     foreach($results as $row){
-      $_t .= "<br />loaded: ".$row["id"].", direction is: ".$row["direction"];
+      $_t .= "<br />loaded: ".$row["id"].", name is: ".$row["first_name"];
     }
 
     return Response::forge($_t);

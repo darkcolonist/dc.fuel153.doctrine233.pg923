@@ -38,8 +38,8 @@ class Doctrine {
     $config->setProxyNamespace('Proxies');
 
     // Set up logger
-    $logger = new EchoSQLLogger;
-    $config->setSQLLogger($logger);
+//    $logger = new EchoSQLLogger;
+//    $config->setSQLLogger($logger);
 
     $config->setAutoGenerateProxyClasses( TRUE );
 
@@ -48,12 +48,13 @@ class Doctrine {
 
     // Database connection information
     $connectionOptions = array(
-        'driver' => 'pdo_mysql',
-        'dsn' =>      $db['dsn'],
-        'user' =>     $db['username'],
-        'password' => $db['password'],
-        'host' =>     $db['hostname'],
-        'dbname' =>   $db['database']
+        'driver'    => $db['driver'],
+        'dsn'       => $db['dsn'],
+        'user'      => $db['username'],
+        'password'  => $db['password'],
+        'host'      => $db['hostname'],
+        'dbname'    => $db['database'],
+        'port'      => $db['port']
     );
 
     // Create EntityManager
