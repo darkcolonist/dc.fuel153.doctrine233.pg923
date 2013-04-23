@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,7 +15,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -89,12 +91,12 @@ interface TreeWalker
     function walkHavingClause($havingClause);
 
     /**
-     * Walks down a Join AST node and creates the corresponding SQL.
+     * Walks down a JoinVariableDeclaration AST node and creates the corresponding SQL.
      *
-     * @param Join $joinVarDecl
+     * @param JoinVariableDeclaration $joinVarDecl
      * @return string The SQL.
      */
-    function walkJoin($join);
+    function walkJoinVariableDeclaration($joinVarDecl);
 
     /**
      * Walks down a SelectExpression AST node and generates the corresponding SQL.
@@ -166,7 +168,7 @@ interface TreeWalker
      * @param GroupByItem
      * @return string The SQL.
      */
-    function walkGroupByItem($groupByItem);
+    function walkGroupByItem(AST\PathExpression $pathExpr);
 
     /**
      * Walks down an UpdateStatement AST node, thereby generating the appropriate SQL.
@@ -391,14 +393,6 @@ interface TreeWalker
      * @return string The SQL.
      */
     function walkPathExpression($pathExpr);
-
-    /**
-     * Walks down an ResultVariable AST node, thereby generating the appropriate SQL.
-     *
-     * @param string $resultVariable
-     * @return string The SQL.
-     */
-    function walkResultVariable($resultVariable);
 
     /**
      * Gets an executor that can be used to execute the result of this walker.

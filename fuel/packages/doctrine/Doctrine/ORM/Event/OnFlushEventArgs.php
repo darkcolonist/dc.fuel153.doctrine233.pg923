@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,69 +15,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
- */
+*/
 
 namespace Doctrine\ORM\Event;
-
-use Doctrine\ORM\EntityManager;
 
 /**
  * Provides event arguments for the preFlush event.
  *
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link        www.doctrine-project.org
+ * @link        www.doctrine-project.com
  * @since       2.0
+ * @version     $Revision$
  * @author      Roman Borschel <roman@code-factory.de>
  * @author      Benjamin Eberlei <kontakt@beberlei.de>
  */
 class OnFlushEventArgs extends \Doctrine\Common\EventArgs
 {
     /**
-     * @var Doctirne\ORM\EntityManager
+     * @var EntityManager
      */
-    private $em;
-
-    //private $entitiesToPersist = array();
-    //private $entitiesToRemove = array();
-
-    /**
-     * Constructor.
-     *
-     * @param \Doctrine\ORM\EntityManager $em
-     */
-    public function __construct(EntityManager $em)
+    private $_em;
+    
+    //private $_entitiesToPersist = array();
+    //private $_entitiesToRemove = array();
+    
+    public function __construct($em)
     {
-        $this->em = $em;
+        $this->_em = $em;
     }
 
     /**
-     * Retrieve associated EntityManager.
-     *
-     * @return \Doctrine\ORM\EntityManager
+     * @return EntityManager
      */
     public function getEntityManager()
     {
-        return $this->em;
+        return $this->_em;
     }
-
+    
     /*
     public function addEntityToPersist($entity)
     {
-
+        
     }
-
+    
     public function addEntityToRemove($entity)
     {
-
+        
     }
-
+    
     public function addEntityToUpdate($entity)
     {
-
+        
     }
-
+    
     public function getEntitiesToPersist()
     {
         return $this->_entitiesToPersist;

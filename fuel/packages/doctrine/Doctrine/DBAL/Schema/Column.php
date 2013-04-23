@@ -13,7 +13,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -25,7 +25,7 @@ use Doctrine\DBAL\Schema\Visitor\Visitor;
 /**
  * Object representation of a database column
  *
- * 
+ * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
  * @since   2.0
  * @version $Revision$
@@ -89,20 +89,10 @@ class Column extends AbstractAsset
     protected $_columnDefinition = null;
 
     /**
-     * @var string
-     */
-    protected $_comment = null;
-
-    /**
-     * @var array
-     */
-    protected $_customSchemaOptions = array();
-
-    /**
      * Create a new Column
-     *
+     * 
      * @param string $columnName
-     * @param \Doctrine\DBAL\Types\Type $type
+     * @param Doctrine\DBAL\Types\Type $type
      * @param int $length
      * @param bool $notNull
      * @param mixed $default
@@ -125,7 +115,7 @@ class Column extends AbstractAsset
      */
     public function setOptions(array $options)
     {
-        foreach ($options as $name => $value) {
+        foreach ($options AS $name => $value) {
             $method = "set".$name;
             if (method_exists($this, $method)) {
                 $this->$method($value);
@@ -164,10 +154,6 @@ class Column extends AbstractAsset
      */
     public function setPrecision($precision)
     {
-        if (!is_numeric($precision)) {
-            $precision = 10; // defaults to 10 when no valid precision is given.
-        }
-
         $this->_precision = (int)$precision;
         return $this;
     }
@@ -178,11 +164,7 @@ class Column extends AbstractAsset
      */
     public function setScale($scale)
     {
-        if (!is_numeric($scale)) {
-            $scale = 0;
-        }
-
-        $this->_scale = (int)$scale;
+        $this->_scale = $scale;
         return $this;
     }
 
@@ -334,64 +316,6 @@ class Column extends AbstractAsset
         return $this;
     }
 
-    public function setComment($comment)
-    {
-        $this->_comment = $comment;
-        return $this;
-    }
-
-    public function getComment()
-    {
-        return $this->_comment;
-    }
-
-    /**
-     * @param  string $name
-     * @param  mixed $value
-     * @return Column
-     */
-    public function setCustomSchemaOption($name, $value)
-    {
-        $this->_customSchemaOptions[$name] = $value;
-        return $this;
-    }
-
-    /**
-     * @param  string $name
-     * @return boolean
-     */
-    public function hasCustomSchemaOption($name)
-    {
-        return isset($this->_customSchemaOptions[$name]);
-    }
-
-    /**
-     * @param  string $name
-     * @return mixed
-     */
-    public function getCustomSchemaOption($name)
-    {
-        return $this->_customSchemaOptions[$name];
-    }
-
-    /**
-     * @param array $customSchemaOptions
-     * @return Column
-     */
-    public function setCustomSchemaOptions(array $customSchemaOptions)
-    {
-        $this->_customSchemaOptions = $customSchemaOptions;
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCustomSchemaOptions()
-    {
-        return $this->_customSchemaOptions;
-    }
-
     /**
      * @param Visitor $visitor
      */
@@ -417,7 +341,6 @@ class Column extends AbstractAsset
             'unsigned'      => $this->_unsigned,
             'autoincrement' => $this->_autoincrement,
             'columnDefinition' => $this->_columnDefinition,
-            'comment' => $this->_comment,
-        ), $this->_platformOptions, $this->_customSchemaOptions);
+        ), $this->_platformOptions);
     }
 }

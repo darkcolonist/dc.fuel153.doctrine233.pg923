@@ -1,19 +1,15 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Output;
 
-use Symfony\Component\Console\Formatter\OutputFormatter;
-use Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 /**
  * ConsoleOutput is the default class for all CLI output. It uses STDOUT.
@@ -26,79 +22,18 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
  *
  *     $output = new StreamOutput(fopen('php://stdout', 'w'));
  *
- * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
+class ConsoleOutput extends StreamOutput
 {
-    private $stderr;
-
     /**
      * Constructor.
      *
-     * @param integer $verbosity The verbosity level (self::VERBOSITY_QUIET, self::VERBOSITY_NORMAL,
-     *                                   self::VERBOSITY_VERBOSE)
-     * @param Boolean         $decorated Whether to decorate messages or not (null for auto-guessing)
-     * @param OutputFormatter $formatter Output formatter instance
-     *
-     * @api
+     * @param integer $verbosity The verbosity level (self::VERBOSITY_QUIET, self::VERBOSITY_NORMAL, self::VERBOSITY_VERBOSE)
+     * @param Boolean $decorated Whether to decorate messages or not (null for auto-guessing)
      */
-    public function __construct($verbosity = self::VERBOSITY_NORMAL, $decorated = null, OutputFormatterInterface $formatter = null)
+    public function __construct($verbosity = self::VERBOSITY_NORMAL, $decorated = null)
     {
-        $outputStream = 'php://stdout';
-        if (!$this->hasStdoutSupport()) {
-            $outputStream = 'php://output';
-        }
-
-        parent::__construct(fopen($outputStream, 'w'), $verbosity, $decorated, $formatter);
-
-        $this->stderr = new StreamOutput(fopen('php://stderr', 'w'), $verbosity, $decorated, $formatter);
-    }
-
-    public function setDecorated($decorated)
-    {
-        parent::setDecorated($decorated);
-        $this->stderr->setDecorated($decorated);
-    }
-
-    public function setFormatter(OutputFormatterInterface $formatter)
-    {
-        parent::setFormatter($formatter);
-        $this->stderr->setFormatter($formatter);
-    }
-
-    public function setVerbosity($level)
-    {
-        parent::setVerbosity($level);
-        $this->stderr->setVerbosity($level);
-    }
-
-    /**
-     * @return OutputInterface
-     */
-    public function getErrorOutput()
-    {
-        return $this->stderr;
-    }
-
-    public function setErrorOutput(OutputInterface $error)
-    {
-        $this->stderr = $error;
-    }
-
-    /**
-     * Returns true if current environment supports writing console output to
-     * STDOUT.
-     *
-     * IBM iSeries (OS400) exhibits character-encoding issues when writing to
-     * STDOUT and doesn't properly convert ASCII to EBCDIC, resulting in garbage
-     * output.
-     *
-     * @return boolean
-     */
-    protected function hasStdoutSupport()
-    {
-        return ('OS400' != php_uname('s'));
+        parent::__construct(fopen('php://stdout', 'w'), $verbosity, $decorated);
     }
 }

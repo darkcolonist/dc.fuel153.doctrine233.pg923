@@ -1,22 +1,20 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Input;
+
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 /**
  * Represents a command line option.
  *
- * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class InputOption
 {
@@ -25,11 +23,11 @@ class InputOption
     const VALUE_OPTIONAL = 4;
     const VALUE_IS_ARRAY = 8;
 
-    private $name;
-    private $shortcut;
-    private $mode;
-    private $default;
-    private $description;
+    protected $name;
+    protected $shortcut;
+    protected $mode;
+    protected $default;
+    protected $description;
 
     /**
      * Constructor.
@@ -41,17 +39,11 @@ class InputOption
      * @param mixed   $default     The default value (must be null for self::VALUE_REQUIRED or self::VALUE_NONE)
      *
      * @throws \InvalidArgumentException If option mode is invalid or incompatible
-     *
-     * @api
      */
     public function __construct($name, $shortcut = null, $mode = null, $description = '', $default = null)
     {
-        if (0 === strpos($name, '--')) {
+        if ('--' === substr($name, 0, 2)) {
             $name = substr($name, 2);
-        }
-
-        if (empty($name)) {
-            throw new \InvalidArgumentException('An option name cannot be empty.');
         }
 
         if (empty($shortcut)) {
@@ -62,15 +54,11 @@ class InputOption
             if ('-' === $shortcut[0]) {
                 $shortcut = substr($shortcut, 1);
             }
-
-            if (empty($shortcut)) {
-                throw new \InvalidArgumentException('An option shortcut cannot be empty.');
-            }
         }
 
         if (null === $mode) {
             $mode = self::VALUE_NONE;
-        } elseif (!is_int($mode) || $mode > 15 || $mode < 1) {
+        } else if (!is_int($mode) || $mode > 15) {
             throw new \InvalidArgumentException(sprintf('Option mode "%s" is not valid.', $mode));
         }
 
@@ -87,7 +75,7 @@ class InputOption
     }
 
     /**
-     * Returns the option shortcut.
+     * Returns the shortcut.
      *
      * @return string The shortcut
      */
@@ -97,7 +85,7 @@ class InputOption
     }
 
     /**
-     * Returns the option name.
+     * Returns the name.
      *
      * @return string The name
      */
@@ -150,8 +138,6 @@ class InputOption
      * Sets the default value.
      *
      * @param mixed $default The default value
-     *
-     * @throws \LogicException When incorrect default value is given
      */
     public function setDefault($default = null)
     {
@@ -188,22 +174,5 @@ class InputOption
     public function getDescription()
     {
         return $this->description;
-    }
-
-    /**
-     * Checks whether the given option equals this one
-     *
-     * @param InputOption $option option to compare
-     * @return Boolean
-     */
-    public function equals(InputOption $option)
-    {
-        return $option->getName() === $this->getName()
-            && $option->getShortcut() === $this->getShortcut()
-            && $option->getDefault() === $this->getDefault()
-            && $option->isArray() === $this->isArray()
-            && $option->isValueRequired() === $this->isValueRequired()
-            && $option->isValueOptional() === $this->isValueOptional()
-        ;
     }
 }

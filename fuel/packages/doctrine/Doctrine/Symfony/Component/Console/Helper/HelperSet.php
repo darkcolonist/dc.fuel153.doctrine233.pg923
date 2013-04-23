@@ -1,31 +1,29 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Helper;
 
 use Symfony\Component\Console\Command\Command;
 
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 /**
  * HelperSet represents a set of helpers to be used with a command.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class HelperSet
 {
-    private $helpers;
-    private $command;
+    protected $helpers;
+    protected $command;
 
     /**
-     * Constructor.
-     *
      * @param Helper[] $helpers An array of helper.
      */
     public function __construct(array $helpers = array())
@@ -39,8 +37,8 @@ class HelperSet
     /**
      * Sets a helper.
      *
-     * @param HelperInterface $helper The helper instance
-     * @param string          $alias  An alias
+     * @param HelperInterface $value The helper instance
+     * @param string                    $alias An alias
      */
     public function set(HelperInterface $helper, $alias = null)
     {
@@ -55,7 +53,7 @@ class HelperSet
     /**
      * Returns true if the helper if defined.
      *
-     * @param string $name The helper name
+     * @param string  $name The helper name
      *
      * @return Boolean true if the helper is defined, false otherwise
      */

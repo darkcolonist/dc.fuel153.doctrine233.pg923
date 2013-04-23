@@ -34,7 +34,7 @@ class Controller_Test_Doctore extends Controller_Test
     $generator->setUpdateEntityIfExists(true);
     $generator->setGenerateStubMethods(true);
     $generator->setGenerateAnnotations(true);
-    $generator->generate($metadata, APPPATH. 'classes/model/Entity');
+    $generator->generate($metadata, APPPATH. 'classes/model');
 
     $_t .= "<br />Done!";
 
@@ -42,10 +42,10 @@ class Controller_Test_Doctore extends Controller_Test
   }
 
   public function action_query(){
-    require_once APPPATH."classes/model/Entity/Users.php";
+//    require_once APPPATH."classes/model/Lol/Users.php";
 
-    for($i = 0; $i < 10000; $i ++){
-      $user = new Users();
+//    for($i = 0; $i < 10000; $i ++){
+      $user = new model\Users();
       $user->setFirstName("luka".md5(uniqid()));
       $user->setLastName("giga".md5(uniqid()));
 
@@ -54,7 +54,7 @@ class Controller_Test_Doctore extends Controller_Test
       $_t .= " ".$user->getFirstName();
 
       Doctrine::$em->persist($user);
-    }
+//    }
 
 
     Doctrine::$em->flush();

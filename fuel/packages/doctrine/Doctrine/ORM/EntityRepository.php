@@ -13,19 +13,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
 namespace Doctrine\ORM;
 
 use Doctrine\DBAL\LockMode;
-use Doctrine\Common\Persistence\ObjectRepository;
-
-use Doctrine\Common\Collections\Selectable;
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\ExpressionBuilder;
 
 /**
  * An EntityRepository serves as a repository for entities with generic as well as
@@ -40,7 +34,7 @@ use Doctrine\Common\Collections\ExpressionBuilder;
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
  */
-class EntityRepository implements ObjectRepository, Selectable
+class EntityRepository
 {
     /**
      * @var string
@@ -53,7 +47,7 @@ class EntityRepository implements ObjectRepository, Selectable
     protected $_em;
 
     /**
-     * @var \Doctrine\ORM\Mapping\ClassMetadata
+     * @var Doctrine\ORM\Mapping\ClassMetadata
      */
     protected $_class;
 
@@ -66,8 +60,8 @@ class EntityRepository implements ObjectRepository, Selectable
     public function __construct($em, Mapping\ClassMetadata $class)
     {
         $this->_entityName = $class->name;
-        $this->_em         = $em;
-        $this->_class      = $class;
+        $this->_em = $em;
+        $this->_class = $class;
     }
 
     /**
@@ -84,32 +78,6 @@ class EntityRepository implements ObjectRepository, Selectable
     }
 
     /**
-     * Create a new Query instance based on a predefined metadata named query.
-     *
-     * @param string $queryName
-     * @return Query
-     */
-    public function createNamedQuery($queryName)
-    {
-        return $this->_em->createQuery($this->_class->getNamedQuery($queryName));
-    }
-
-    /**
-     * Creates a native SQL query.
-     *
-     * @param string $queryName
-     * @return NativeQuery
-     */
-    public function createNativeNamedQuery($queryName)
-    {
-        $queryMapping   = $this->_class->getNamedNativeQuery($queryName);
-        $rsm            = new Query\ResultSetMappingBuilder($this->_em);
-        $rsm->addNamedNativeQueryMapping($this->_class, $queryMapping);
-
-        return $this->_em->createNativeQuery($queryMapping['query'], $rsm);
-    }
-
-    /**
      * Clears the repository, causing all managed entities to become detached.
      */
     public function clear()
@@ -120,15 +88,46 @@ class EntityRepository implements ObjectRepository, Selectable
     /**
      * Finds an entity by its primary key / identifier.
      *
-     * @param mixed $id The identifier.
-     * @param integer $lockMode
-     * @param integer $lockVersion
-     *
+     * @param $id The identifier.
+     * @param int $lockMode
+     * @param int $lockVersion
      * @return object The entity.
      */
     public function find($id, $lockMode = LockMode::NONE, $lockVersion = null)
     {
-        return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
+        // Check identity map first
+        if ($entity = $this->_em->getUnitOfWork()->tryGetById($id, $this->_class->rootEntityName)) {
+            if ($lockMode != LockMode::NONE) {
+                $this->_em->lock($entity, $lockMode, $lockVersion);
+            }
+
+            return $entity; // Hit!
+        }
+
+        if ( ! is_array($id) || count($id) <= 1) {
+            // @todo FIXME: Not correct. Relies on specific order.
+            $value = is_array($id) ? array_values($id) : array($id);
+            $id = array_combine($this->_class->identifier, $value);
+        }
+
+        if ($lockMode == LockMode::NONE) {
+            return $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName)->load($id);
+        } else if ($lockMode == LockMode::OPTIMISTIC) {
+            if (!$this->_class->isVersioned) {
+                throw OptimisticLockException::notVersioned($this->_entityName);
+            }
+            $entity = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName)->load($id);
+
+            $this->_em->getUnitOfWork()->lock($entity, $lockMode, $lockVersion);
+
+            return $entity;
+        } else {
+            if (!$this->_em->getConnection()->isTransactionActive()) {
+                throw TransactionRequiredException::transactionRequired();
+            }
+            
+            return $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName)->load($id, null, null, array(), $lockMode);
+        }
     }
 
     /**
@@ -145,30 +144,22 @@ class EntityRepository implements ObjectRepository, Selectable
      * Finds entities by a set of criteria.
      *
      * @param array $criteria
-     * @param array|null $orderBy
-     * @param int|null $limit
-     * @param int|null $offset
-     * @return array The objects.
+     * @return array
      */
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    public function findBy(array $criteria)
     {
-        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
-
-        return $persister->loadAll($criteria, $orderBy, $limit, $offset);
+        return $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName)->loadAll($criteria);
     }
 
     /**
      * Finds a single entity by a set of criteria.
      *
      * @param array $criteria
-     * @param array|null $orderBy
      * @return object
      */
-    public function findOneBy(array $criteria, array $orderBy = null)
+    public function findOneBy(array $criteria)
     {
-        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
-
-        return $persister->load($criteria, null, null, array(), 0, 1, $orderBy);
+        return $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName)->load($criteria);
     }
 
     /**
@@ -181,50 +172,31 @@ class EntityRepository implements ObjectRepository, Selectable
      */
     public function __call($method, $arguments)
     {
-        switch (true) {
-            case (0 === strpos($method, 'findBy')):
-                $by = substr($method, 6);
-                $method = 'findBy';
-                break;
-
-            case (0 === strpos($method, 'findOneBy')):
-                $by = substr($method, 9);
-                $method = 'findOneBy';
-                break;
-
-            default:
-                throw new \BadMethodCallException(
-                    "Undefined method '$method'. The method name must start with ".
-                    "either findBy or findOneBy!"
-                );
+        if (substr($method, 0, 6) == 'findBy') {
+            $by = substr($method, 6, strlen($method));
+            $method = 'findBy';
+        } else if (substr($method, 0, 9) == 'findOneBy') {
+            $by = substr($method, 9, strlen($method));
+            $method = 'findOneBy';
+        } else {
+            throw new \BadMethodCallException(
+                "Undefined method '$method'. The method name must start with ".
+                "either findBy or findOneBy!"
+            );
         }
 
-        if (empty($arguments)) {
-            throw ORMException::findByRequiresParameter($method . $by);
+        if ( !isset($arguments[0])) {
+            // we dont even want to allow null at this point, because we cannot (yet) transform it into IS NULL.
+            throw ORMException::findByRequiresParameter($method.$by);
         }
 
         $fieldName = lcfirst(\Doctrine\Common\Util\Inflector::classify($by));
 
         if ($this->_class->hasField($fieldName) || $this->_class->hasAssociation($fieldName)) {
-            switch (count($arguments)) {
-                case 1:
-                    return $this->$method(array($fieldName => $arguments[0]));
-
-                case 2:
-                    return $this->$method(array($fieldName => $arguments[0]), $arguments[1]);
-
-                case 3:
-                    return $this->$method(array($fieldName => $arguments[0]), $arguments[1], $arguments[2]);
-
-                case 4:
-                    return $this->$method(array($fieldName => $arguments[0]), $arguments[1], $arguments[2], $arguments[3]);
-
-                default:
-                    // Do nothing
-            }
+            return $this->$method(array($fieldName => $arguments[0]));
+        } else {
+            throw ORMException::invalidFindByCall($this->_entityName, $fieldName, $method.$by);
         }
-
-        throw ORMException::invalidFindByCall($this->_entityName, $fieldName, $method.$by);
     }
 
     /**
@@ -233,14 +205,6 @@ class EntityRepository implements ObjectRepository, Selectable
     protected function getEntityName()
     {
         return $this->_entityName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getClassName()
-    {
-        return $this->getEntityName();
     }
 
     /**
@@ -258,20 +222,4 @@ class EntityRepository implements ObjectRepository, Selectable
     {
         return $this->_class;
     }
-
-    /**
-     * Select all elements from a selectable that match the expression and
-     * return a new collection containing these elements.
-     *
-     * @param \Doctrine\Common\Collections\Criteria $criteria
-     *
-     * @return \Doctrine\Common\Collections\Collection
-     */
-    public function matching(Criteria $criteria)
-    {
-        $persister = $this->_em->getUnitOfWork()->getEntityPersister($this->_entityName);
-
-        return new ArrayCollection($persister->loadCriteria($criteria));
-    }
 }
-

@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,7 +15,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -22,7 +24,7 @@ namespace Doctrine\ORM\Query;
 /**
  * An adapter implementation of the TreeWalker interface. The methods in this class
  * are empty. ﻿This class exists as convenience for creating tree walkers.
- *
+ * 
  * @author Roman Borschel <roman@code-factory.org>
  * @since 2.0
  */
@@ -31,7 +33,7 @@ abstract class TreeWalkerAdapter implements TreeWalker
     private $_query;
     private $_parserResult;
     private $_queryComponents;
-
+    
     /**
      * {@inheritdoc}
      */
@@ -53,7 +55,7 @@ abstract class TreeWalkerAdapter implements TreeWalker
     /**
      * Retrieve Query Instance reponsible for the current walkers execution.
      *
-     * @return \Doctrine\ORM\Query
+     * @return Doctrine\ORM\Query
      */
     protected function _getQuery()
     {
@@ -63,13 +65,13 @@ abstract class TreeWalkerAdapter implements TreeWalker
     /**
      * Retrieve ParserResult
      *
-     * @return \Doctrine\ORM\Query\ParserResult
+     * @return Doctrine\ORM\Query\ParserResult
      */
     protected function _getParserResult()
     {
         return $this->_parserResult;
     }
-
+    
     /**
      * Walks down a SelectStatement AST node, thereby generating the appropriate SQL.
      *
@@ -123,12 +125,12 @@ abstract class TreeWalkerAdapter implements TreeWalker
     public function walkHavingClause($havingClause) {}
 
     /**
-     * Walks down a Join AST node and creates the corresponding SQL.
+     * Walks down a JoinVariableDeclaration AST node and creates the corresponding SQL.
      *
-     * @param Join $join
+     * @param JoinVariableDeclaration $joinVarDecl
      * @return string The SQL.
      */
-    public function walkJoin($join) {}
+    public function walkJoinVariableDeclaration($joinVarDecl) {}
 
     /**
      * Walks down a SelectExpression AST node and generates the corresponding SQL.
@@ -200,7 +202,7 @@ abstract class TreeWalkerAdapter implements TreeWalker
      * @param GroupByItem
      * @return string The SQL.
      */
-    public function walkGroupByItem($groupByItem) {}
+    public function walkGroupByItem(AST\PathExpression $pathExpr) {}
 
     /**
      * Walks down an UpdateStatement AST node, thereby generating the appropriate SQL.
@@ -289,7 +291,7 @@ abstract class TreeWalkerAdapter implements TreeWalker
      * @return string The SQL.
      */
     public function walkExistsExpression($existsExpr) {}
-
+    
     /**
      * Walks down a CollectionMemberExpression AST node, thereby generating the appropriate SQL.
      *
@@ -425,18 +427,10 @@ abstract class TreeWalkerAdapter implements TreeWalker
      * @return string The SQL.
      */
     public function walkPathExpression($pathExpr) {}
-
-    /**
-     * Walks down an ResultVariable AST node, thereby generating the appropriate SQL.
-     *
-     * @param string $resultVariable
-     * @return string The SQL.
-     */
-    public function walkResultVariable($resultVariable) {}
-
+    
     /**
      * Gets an executor that can be used to execute the result of this walker.
-     *
+     * 
      * @return AbstractExecutor
      */
     public function getExecutor($AST) {}

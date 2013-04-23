@@ -1,15 +1,15 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Input;
+
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 /**
  * StringInput represents an input provided as a string.
@@ -18,9 +18,7 @@ namespace Symfony\Component\Console\Input;
  *
  *     $input = new StringInput('foo --bar="foobar"');
  *
- * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class StringInput extends ArgvInput
 {
@@ -30,28 +28,20 @@ class StringInput extends ArgvInput
     /**
      * Constructor.
      *
-     * @param string          $input      An array of parameters from the CLI (in the argv format)
+     * @param string     $input An array of parameters from the CLI (in the argv format)
      * @param InputDefinition $definition A InputDefinition instance
-     *
-     * @api
      */
     public function __construct($input, InputDefinition $definition = null)
     {
         parent::__construct(array(), $definition);
 
-        $this->setTokens($this->tokenize($input));
+        $this->tokens = $this->tokenize($input);
     }
 
     /**
-     * Tokenizes a string.
-     *
-     * @param string $input The input to tokenize
-     *
-     * @return array An array of tokens
-     *
      * @throws \InvalidArgumentException When unable to parse input (should never happen)
      */
-    private function tokenize($input)
+    protected function tokenize($input)
     {
         $input = preg_replace('/(\r\n|\r|\n|\t)/', ' ', $input);
 

@@ -14,103 +14,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
 namespace Doctrine\DBAL\Schema;
 
 /**
- * PostgreSQL Schema Manager
+ * xxx
  *
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @author      Konsta Vesterinen <kvesteri@cc.hut.fi>
  * @author      Lukas Smith <smith@pooteeweet.org> (PEAR MDB2 library)
  * @author      Benjamin Eberlei <kontakt@beberlei.de>
+ * @version     $Revision$
  * @since       2.0
  */
 class PostgreSqlSchemaManager extends AbstractSchemaManager
 {
-    /**
-     * @var array
-     */
-    private $existingSchemaPaths;
-
-    /**
-     * Get all the existing schema names.
-     *
-     * @return array
-     */
-    public function getSchemaNames()
-    {
-        $rows = $this->_conn->fetchAll("SELECT nspname as schema_name FROM pg_namespace WHERE nspname !~ '^pg_.*' and nspname != 'information_schema'");
-        return array_map(function($v) { return $v['schema_name']; }, $rows);
-    }
-
-    /**
-     * Return an array of schema search paths
-     *
-     * This is a PostgreSQL only function.
-     *
-     * @return array
-     */
-    public function getSchemaSearchPaths()
-    {
-        $params = $this->_conn->getParams();
-        $schema = explode(",", $this->_conn->fetchColumn('SHOW search_path'));
-        if (isset($params['user'])) {
-            $schema = str_replace('"$user"', $params['user'], $schema);
-        }
-        return $schema;
-    }
-
-    /**
-     * Get names of all existing schemas in the current users search path.
-     *
-     * This is a PostgreSQL only function.
-     *
-     * @return array
-     */
-    public function getExistingSchemaSearchPaths()
-    {
-        if ($this->existingSchemaPaths === null) {
-            $this->determineExistingSchemaSearchPaths();
-        }
-        return $this->existingSchemaPaths;
-    }
-
-    /**
-     * Use this to set or reset the order of the existing schemas in the current search path of the user
-     *
-     * This is a PostgreSQL only function.
-     *
-     * @return void
-     */
-    public function determineExistingSchemaSearchPaths()
-    {
-        $names = $this->getSchemaNames();
-        $paths = $this->getSchemaSearchPaths();
-
-        $this->existingSchemaPaths = array_filter($paths, function ($v) use ($names) {
-            return in_array($v, $names);
-        });
-    }
 
     protected function _getPortableTableForeignKeyDefinition($tableForeignKey)
     {
         $onUpdate = null;
         $onDelete = null;
 
-        if (preg_match('(ON UPDATE ([a-zA-Z0-9]+( (NULL|ACTION|DEFAULT))?))', $tableForeignKey['condef'], $match)) {
+        if (preg_match('(ON UPDATE ([a-zA-Z0-9]+))', $tableForeignKey['condef'], $match)) {
             $onUpdate = $match[1];
         }
-        if (preg_match('(ON DELETE ([a-zA-Z0-9]+( (NULL|ACTION|DEFAULT))?))', $tableForeignKey['condef'], $match)) {
+        if (preg_match('(ON DELETE ([a-zA-Z0-9]+))', $tableForeignKey['condef'], $match)) {
             $onDelete = $match[1];
         }
 
         if (preg_match('/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)/', $tableForeignKey['condef'], $values)) {
-            // PostgreSQL returns identifiers that are keywords with quotes, we need them later, don't get
-            // the idea to trim them here.
             $localColumns = array_map('trim', explode(",", $values[1]));
             $foreignColumns = array_map('trim', explode(",", $values[3]));
             $foreignTable = $values[2];
@@ -174,10 +109,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
 
     protected function _getPortableTableDefinition($table)
     {
-        $schemas = $this->getExistingSchemaSearchPaths();
-        $firstSchema = array_shift($schemas);
-
-        if ($table['schema_name'] == $firstSchema) {
+        if ($table['schema_name'] == 'public') {
             return $table['table_name'];
         } else {
             return $table['schema_name'] . "." . $table['table_name'];
@@ -194,7 +126,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     protected function _getPortableTableIndexesList($tableIndexes, $tableName=null)
     {
         $buffer = array();
-        foreach ($tableIndexes as $row) {
+        foreach ($tableIndexes AS $row) {
             $colNumbers = explode(' ', $row['indkey']);
             $colNumbersSql = 'IN (' . join(' ,', $colNumbers) . ' )';
             $columnNameSql = "SELECT attnum, attname FROM pg_attribute
@@ -204,7 +136,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
             $indexColumns = $stmt->fetchAll();
 
             // required for getting the order of the columns right.
-            foreach ($colNumbers as $colNum) {
+            foreach ($colNumbers AS $colNum) {
                 foreach ($indexColumns as $colRow) {
                     if ($colNum == $colRow['attnum']) {
                         $buffer[] = array(
@@ -217,7 +149,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
                 }
             }
         }
-        return parent::_getPortableTableIndexesList($buffer, $tableName);
+        return parent::_getPortableTableIndexesList($buffer);
     }
 
     protected function _getPortableDatabaseDefinition($database)
@@ -267,6 +199,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
         if ((int) $length <= 0) {
             $length = null;
         }
+        $type = array();
         $fixed = null;
 
         if (!isset($tableColumn['name'])) {
@@ -276,16 +209,14 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
         $precision = null;
         $scale = null;
 
-        $dbType = strtolower($tableColumn['type']);
-        if (strlen($tableColumn['domain_type']) && !$this->_platform->hasDoctrineTypeMappingFor($tableColumn['type'])) {
+        if ($this->_platform->hasDoctrineTypeMappingFor($tableColumn['type'])) {
+            $dbType = strtolower($tableColumn['type']);
+        } else {
             $dbType = strtolower($tableColumn['domain_type']);
             $tableColumn['complete_type'] = $tableColumn['domain_complete_type'];
         }
 
         $type = $this->_platform->getDoctrineTypeMapping($dbType);
-        $type = $this->extractDoctrineTypeFromComment($tableColumn['comment'], $type);
-        $tableColumn['comment'] = $this->removeDoctrineTypeFromComment($tableColumn['comment'], $type);
-
         switch ($dbType) {
             case 'smallint':
             case 'int2':
@@ -336,21 +267,16 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
                 break;
         }
 
-        if ($tableColumn['default'] && preg_match("('([^']+)'::)", $tableColumn['default'], $match)) {
-            $tableColumn['default'] = $match[1];
-        }
-
         $options = array(
-            'length'        => $length,
-            'notnull'       => (bool) $tableColumn['isnotnull'],
-            'default'       => $tableColumn['default'],
-            'primary'       => (bool) ($tableColumn['pri'] == 't'),
-            'precision'     => $precision,
-            'scale'         => $scale,
-            'fixed'         => $fixed,
-            'unsigned'      => false,
+            'length' => $length,
+            'notnull' => (bool) $tableColumn['isnotnull'],
+            'default' => $tableColumn['default'],
+            'primary' => (bool) ($tableColumn['pri'] == 't'),
+            'precision' => $precision,
+            'scale' => $scale,
+            'fixed' => $fixed,
+            'unsigned' => false,
             'autoincrement' => $autoincrement,
-            'comment'       => $tableColumn['comment'],
         );
 
         return new Column($tableColumn['field'], \Doctrine\DBAL\Types\Type::getType($type), $options);

@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,7 +15,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -24,9 +26,10 @@ use Doctrine\ORM\Query\AST\PathExpression;
 /**
  * Description of QueryException
  *
- * 
+ * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
  * @since   2.0
+ * @version $Revision: 3938 $
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
@@ -34,24 +37,14 @@ use Doctrine\ORM\Query\AST\PathExpression;
  */
 class QueryException extends \Doctrine\ORM\ORMException
 {
-    public static function dqlError($dql)
+    public static function syntaxError($message)
     {
-        return new self($dql);
+        return new self('[Syntax Error] ' . $message);
     }
 
-    public static function syntaxError($message, $previous = null)
+    public static function semanticalError($message)
     {
-        return new self('[Syntax Error] ' . $message, 0, $previous);
-    }
-
-    public static function semanticalError($message, $previous = null)
-    {
-        return new self('[Semantical Error] ' . $message, 0, $previous);
-    }
-
-    public static function invalidLockMode()
-    {
-        return new self('Invalid lock mode hint provided.');
+        return new self('[Semantical Error] ' . $message);
     }
 
     public static function invalidParameterType($expected, $received)
@@ -79,15 +72,11 @@ class QueryException extends \Doctrine\ORM\ORMException
         return new self("Invalid parameter: token ".$key." is not defined in the query.");
     }
 
-    public static function parameterTypeMissmatch()
-    {
-        return new self("DQL Query parameter and type numbers missmatch, but have to be exactly equal.");
-    }
-
     public static function invalidPathExpression($pathExpr)
     {
         return new self(
-            "Invalid PathExpression '" . $pathExpr->identificationVariable . "." . $pathExpr->field . "'."
+            "Invalid PathExpression '" . $pathExpr->identificationVariable .
+            "." . implode('.', $pathExpr->parts) . "'."
         );
     }
 
@@ -96,7 +85,7 @@ class QueryException extends \Doctrine\ORM\ORMException
     }
 
     /**
-     * @param array $assoc
+     * @param Doctrine\ORM\Mapping\AssociationMapping $assoc
      */
     public static function iterateWithFetchJoinCollectionNotAllowed($assoc)
     {
@@ -146,11 +135,5 @@ class QueryException extends \Doctrine\ORM\ORMException
             "key is not supported. Explicitly name the components of the composite primary key ".
             "in the query."
         );
-    }
-
-    public static function instanceOfUnrelatedClass($className, $rootClass)
-    {
-        return new self("Cannot check if a child of '" . $rootClass . "' is instanceof '" . $className . "', " .
-                "inheritance hierachy exists between these two classes.");
     }
 }

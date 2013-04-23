@@ -1,37 +1,34 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Tester;
 
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 
-/**
- * Eases the testing of console applications.
+/*
+ * This file is part of the Symfony framework.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
+/**
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class ApplicationTester
 {
-    private $application;
-    private $input;
-    private $output;
+    protected $application;
+    protected $display;
+    protected $input;
+    protected $output;
 
     /**
      * Constructor.
      *
-     * @param Application $application An Application instance to test.
+     * @param Application $application A Application instance to test.
      */
     public function __construct(Application $application)
     {
@@ -49,8 +46,6 @@ class ApplicationTester
      *
      * @param array $input   An array of arguments and options
      * @param array $options An array of options
-     *
-     * @return integer The command exit code
      */
     public function run(array $input, $options = array())
     {
@@ -67,7 +62,11 @@ class ApplicationTester
             $this->output->setVerbosity($options['verbosity']);
         }
 
-        return $this->application->run($this->input, $this->output);
+        $ret = $this->application->run($this->input, $this->output);
+
+        rewind($this->output->getStream());
+
+        return $this->display = stream_get_contents($this->output->getStream());
     }
 
     /**
@@ -77,9 +76,7 @@ class ApplicationTester
      */
     public function getDisplay()
     {
-        rewind($this->output->getStream());
-
-        return stream_get_contents($this->output->getStream());
+        return $this->display;
     }
 
     /**

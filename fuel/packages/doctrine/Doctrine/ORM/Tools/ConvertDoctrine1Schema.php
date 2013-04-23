@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,7 +15,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -26,9 +28,10 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo,
 /**
  * Class to help with converting Doctrine 1 schema files to Doctrine 2 mapping files
  *
- * 
+ * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
  * @since   2.0
+ * @version $Revision$
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
@@ -67,10 +70,10 @@ class ConvertDoctrine1Schema
             if (is_dir($path)) {
                 $files = glob($path . '/*.yml');
                 foreach ($files as $file) {
-                    $schema = array_merge($schema, (array) \Symfony\Component\Yaml\Yaml::parse($file));
+                    $schema = array_merge($schema, (array) \Symfony\Component\Yaml\Yaml::load($file));
                 }
             } else {
-                $schema = array_merge($schema, (array) \Symfony\Component\Yaml\Yaml::parse($path));
+                $schema = array_merge($schema, (array) \Symfony\Component\Yaml\Yaml::load($path));
             }
         }
 
@@ -98,7 +101,6 @@ class ConvertDoctrine1Schema
     {
         if (isset($model['tableName']) && $model['tableName']) {
             $e = explode('.', $model['tableName']);
-
             if (count($e) > 1) {
                 $metadata->table['schema'] = $e[0];
                 $metadata->table['name'] = $e[1];
@@ -246,6 +248,7 @@ class ConvertDoctrine1Schema
                             'name' => $relation['local'],
                             'referencedColumnName' => $relation['foreign'],
                             'onDelete' => isset($relation['onDelete']) ? $relation['onDelete'] : null,
+                            'onUpdate' => isset($relation['onUpdate']) ? $relation['onUpdate'] : null,
                         )
                     );
                 }

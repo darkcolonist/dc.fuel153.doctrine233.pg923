@@ -1,31 +1,29 @@
 <?php
 
-/*
- * This file is part of the Symfony package.
- *
- * (c) Fabien Potencier <fabien@symfony.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 namespace Symfony\Component\Console\Helper;
+
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
 /**
  * The Formatter class provides helpers to format messages.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class FormatterHelper extends Helper
 {
     /**
      * Formats a message within a section.
      *
-     * @param string $section The section name
-     * @param string $message The message
-     * @param string $style   The style to apply to the section
-     *
-     * @return string The format section
+     * @param string  $section The section name
+     * @param string  $message The message
+     * @param string  $style   The style to apply to the section
      */
     public function formatSection($section, $message, $style = 'info')
     {
@@ -43,7 +41,9 @@ class FormatterHelper extends Helper
      */
     public function formatBlock($messages, $style, $large = false)
     {
-        $messages = (array) $messages;
+        if (!is_array($messages)) {
+            $messages = array($messages);
+        }
 
         $len = 0;
         $lines = array();
@@ -67,30 +67,13 @@ class FormatterHelper extends Helper
         return implode("\n", $messages);
     }
 
-    /**
-     * Returns the length of a string, using mb_strlen if it is available.
-     *
-     * @param string $string The string to check its length
-     *
-     * @return integer The length of the string
-     */
-    private function strlen($string)
+    protected function strlen($string)
     {
-        if (!function_exists('mb_strlen')) {
-            return strlen($string);
-        }
-
-        if (false === $encoding = mb_detect_encoding($string)) {
-            return strlen($string);
-        }
-
-        return mb_strlen($string, $encoding);
+        return function_exists('mb_strlen') ? mb_strlen($string) : strlen($string);
     }
 
     /**
-     * Returns the helper's canonical name.
-     *
-     * @return string The canonical name of the helper
+     * Returns the helper's canonical name
      */
     public function getName()
     {

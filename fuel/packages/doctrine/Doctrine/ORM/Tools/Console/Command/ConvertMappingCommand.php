@@ -1,5 +1,7 @@
 <?php
 /*
+ *  $Id$
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -13,7 +15,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This software consists of voluntary contributions made by many individuals
- * and is licensed under the MIT license. For more information, see
+ * and is licensed under the LGPL. For more information, see
  * <http://www.doctrine-project.org>.
  */
 
@@ -30,9 +32,10 @@ use Symfony\Component\Console\Input\InputArgument,
 /**
  * Command to convert your mapping information between the various formats.
  *
- * 
+ * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link    www.doctrine-project.org
  * @since   2.0
+ * @version $Revision$
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author  Jonathan Wage <jonwage@gmail.com>
@@ -75,10 +78,6 @@ class ConvertMappingCommand extends Console\Command\Command
                 'num-spaces', null, InputOption::VALUE_OPTIONAL,
                 'Defines the number of indentation spaces', 4
             ),
-            new InputOption(
-                'namespace', null, InputOption::VALUE_OPTIONAL,
-                'Defines a namespace for the generated entity classes, if converted from database.'
-            ),
         ))
         ->setHelp(<<<EOT
 Convert mapping information between supported formats.
@@ -108,17 +107,11 @@ EOT
         $em = $this->getHelper('em')->getEntityManager();
 
         if ($input->getOption('from-database') === true) {
-            $databaseDriver = new \Doctrine\ORM\Mapping\Driver\DatabaseDriver(
-                $em->getConnection()->getSchemaManager()
-            );
-
             $em->getConfiguration()->setMetadataDriverImpl(
-                $databaseDriver
+                new \Doctrine\ORM\Mapping\Driver\DatabaseDriver(
+                    $em->getConnection()->getSchemaManager()
+                )
             );
-
-            if (($namespace = $input->getOption('namespace')) !== null) {
-                $databaseDriver->setNamespace($namespace);
-            }
         }
 
         $cmf = new DisconnectedClassMetadataFactory();
@@ -134,7 +127,7 @@ EOT
 
         if ( ! file_exists($destPath)) {
             throw new \InvalidArgumentException(
-                sprintf("Mapping destination directory '<info>%s</info>' does not exist.", $input->getArgument('dest-path'))
+                sprintf("Mapping destination directory '<info>%s</info>' does not exist.", $destPath)
             );
         } else if ( ! is_writable($destPath)) {
             throw new \InvalidArgumentException(
@@ -144,7 +137,8 @@ EOT
 
         $toType = strtolower($input->getArgument('to-type'));
 
-        $exporter = $this->getExporter($toType, $destPath);
+        $cme = new ClassMetadataExporter();
+        $exporter = $cme->getExporter($toType, $destPath);
         $exporter->setOverwriteExistingFiles( ($input->getOption('force') !== false) );
 
         if ($toType == 'annotation') {
@@ -172,12 +166,5 @@ EOT
         } else {
             $output->write('No Metadata Classes to process.' . PHP_EOL);
         }
-    }
-
-    protected function getExporter($toType, $destPath)
-    {
-        $cme = new ClassMetadataExporter();
-
-        return $cme->getExporter($toType, $destPath);
     }
 }
