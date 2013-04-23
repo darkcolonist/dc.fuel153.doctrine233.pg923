@@ -42,14 +42,21 @@ class Controller_Test_Doctore extends Controller_Test
   }
 
   public function action_query(){
-    $user = new Entity\Users();
-    $user->setFirstName("luka");
+    require_once APPPATH."classes/model/Entity/Users.php";
 
-    $_t = "i'm fvcked";
+    for($i = 0; $i < 10000; $i ++){
+      $user = new Users();
+      $user->setFirstName("luka".md5(uniqid()));
+      $user->setLastName("giga".md5(uniqid()));
 
-    $_t .= " ".$user->getFirstName();
+      $_t = "test complete: ";
 
-    Doctrine::$em->persist($user);
+      $_t .= " ".$user->getFirstName();
+
+      Doctrine::$em->persist($user);
+    }
+
+
     Doctrine::$em->flush();
 
 //    $query = Doctrine::$em->createQueryBuilder()

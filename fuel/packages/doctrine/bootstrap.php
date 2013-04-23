@@ -4,6 +4,10 @@ use Doctrine\Common\ClassLoader,
     Doctrine\ORM\Tools\Setup,
     Doctrine\ORM\EntityManager;
 
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+
 class Doctrine
 {
 
@@ -37,8 +41,15 @@ class Doctrine
 
         // Set $dev_mode to TRUE to disable caching while you develop
         $dev_mode = true;
-        $config = Setup::createAnnotationMetadataConfiguration($metadata_paths,
-                $dev_mode, $proxies_dir);
+//        $config = Setup::createAnnotationMetadataConfiguration($metadata_paths,
+//                $dev_mode, $proxies_dir);
+        $config = Setup::createConfiguration($dev_mode);
+        $driver = new AnnotationDriver(new AnnotationReader(), $metadata_paths);
+
+        // registering noop annotation autoloader - allow all annotations by default
+        AnnotationRegistry::registerLoader('class_exists');
+        $config->setMetadataDriverImpl($driver);
+
         self::$em = EntityManager::create($connection_options, $config);
 
         $loader = new ClassLoader($models_namespace, $models_path);
