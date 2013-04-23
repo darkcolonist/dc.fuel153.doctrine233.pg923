@@ -1,5 +1,8 @@
 <?php
-//use Doctrine\ORM\Mapping as ORM;
+
+namespace Entity;
+
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Users

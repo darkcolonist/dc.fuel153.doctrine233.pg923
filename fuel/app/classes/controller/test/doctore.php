@@ -1,4 +1,6 @@
 <?php
+use Doctrine\ORM;
+
 class Controller_Test_Doctore extends Controller_Test
 {
   public function action_index(){
@@ -32,7 +34,7 @@ class Controller_Test_Doctore extends Controller_Test
     $generator->setUpdateEntityIfExists(true);
     $generator->setGenerateStubMethods(true);
     $generator->setGenerateAnnotations(true);
-    $generator->generate($metadata, APPPATH. 'classes/model/Entities');
+    $generator->generate($metadata, APPPATH. 'classes/model/Entity');
 
     $_t .= "<br />Done!";
 
@@ -40,7 +42,7 @@ class Controller_Test_Doctore extends Controller_Test
   }
 
   public function action_query(){
-    $user = new Users();
+    $user = new Entity\Users();
     $user->setFirstName("luka");
 
     $_t = "i'm fvcked";

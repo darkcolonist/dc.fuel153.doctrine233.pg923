@@ -1,44 +1,51 @@
 <?php
 /// V5
-use Doctrine\ORM\Tools\Setup;
-use Doctrine\ORM\EntityManager;
-use Doctrine\Common\ClassLoader;
+use Doctrine\Common\ClassLoader,
+    Doctrine\ORM\Tools\Setup,
+    Doctrine\ORM\EntityManager;
 
-class Doctrine {
+class Doctrine
+{
 
-  static $em = null;
+    public static $em;
 
-  public static function setup()
-  {
-    // Set up class loading. You could use different autoloaders, provided by your favorite framework,
-    // if you want to.
-    require_once dirname(__FILE__).'/Doctrine/Common/ClassLoader.php';
+    public static function setup()
+    {
+        require_once __DIR__ . '/Doctrine/ORM/Tools/Setup.php';
+        Setup::registerAutoloadDirectory(__DIR__);
 
-    $doctrineClassLoader = new ClassLoader('Doctrine',  dirname(__FILE__).'/');
-    $doctrineClassLoader->register();
+        Config::load("db", true);
+        $db = Config::get("db.default.connection");
 
-    $isDevMode = true;
-    $config = Setup::createAnnotationMetadataConfiguration(array(APPPATH."classes/model/Entities"), $isDevMode);
+        // Database connection information
+        $connection_options = array(
+            'driver'    => $db['driver'],
+            'dsn'       => $db['dsn'],
+            'user'      => $db['username'],
+            'password'  => $db['password'],
+            'host'      => $db['hostname'],
+            'dbname'    => $db['database'],
+            'port'      => $db['port']
+        );
 
-    Config::load("db", true);
-    $db = Config::get("db.default.connection");
+        // With this configuration, your model files need to be in application/models/Entity
+        // e.g. Creating a new Entity\User loads the class from application/models/Entity/User.php
+        $models_namespace = 'Entity';
+        $models_path = APPPATH . 'classes/model';
+        $proxies_dir = APPPATH . 'classes/model/Proxies';
+        $metadata_paths = array(APPPATH . 'classes/model');
 
-    // Database connection information
-    $connectionOptions = array(
-        'driver'    => $db['driver'],
-        'dsn'       => $db['dsn'],
-        'user'      => $db['username'],
-        'password'  => $db['password'],
-        'host'      => $db['hostname'],
-        'dbname'    => $db['database'],
-        'port'      => $db['port']
-    );
+        // Set $dev_mode to TRUE to disable caching while you develop
+        $dev_mode = true;
+        $config = Setup::createAnnotationMetadataConfiguration($metadata_paths,
+                $dev_mode, $proxies_dir);
+        self::$em = EntityManager::create($connection_options, $config);
 
-    // Create EntityManager
-    self::$em = EntityManager::create($connectionOptions, $config);
-  }
+        $loader = new ClassLoader($models_namespace, $models_path);
+        $loader->register();
+    }
+
 }
-
 Doctrine::setup();
 
 /// V4
