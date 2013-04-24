@@ -1,2 +1,0 @@
-[23-Apr-2013 09:35:19] PHP Fatal error:  Cannot redeclare class Users in D:\_gits\dc.deploy\fuel\app\classes\model\Users.php on line 12
-[23-Apr-2013 09:35:33] PHP Fatal error:  Cannot redeclare class UserX in D:\_gits\dc.deploy\fuel\app\classes\model\Users.php on line 12

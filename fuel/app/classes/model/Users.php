@@ -35,6 +35,20 @@ class Users
     private $lastName;
 
     /**
+     * @var string $gender
+     *
+     * @Column(name="gender", type="string", length=6, nullable=true)
+     */
+    private $gender;
+
+    /**
+     * @var datetime $dateofbirth
+     *
+     * @Column(name="dateofbirth", type="datetime", nullable=true)
+     */
+    private $dateofbirth;
+
+    /**
      * Get id
      *
      * @return bigint $id
@@ -82,5 +96,45 @@ class Users
     public function getLastName()
     {
         return $this->lastName;
+    }
+
+    /**
+     * Set gender
+     *
+     * @param string $gender
+     */
+    public function setGender($gender)
+    {
+        $this->gender = $gender;
+    }
+
+    /**
+     * Get gender
+     *
+     * @return string $gender
+     */
+    public function getGender()
+    {
+        return $this->gender;
+    }
+
+    /**
+     * Set dateofbirth
+     *
+     * @param datetime $dateofbirth
+     */
+    public function setDateofbirth($dateofbirth)
+    {
+        $this->dateofbirth = $dateofbirth;
+    }
+
+    /**
+     * Get dateofbirth
+     *
+     * @return datetime $dateofbirth
+     */
+    public function getDateofbirth()
+    {
+        return $this->dateofbirth;
     }
 }
